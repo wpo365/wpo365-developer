@@ -1,0 +1,4 @@
+-multiIns
+vendor
+node_modules
+apps/apps/dist/*
