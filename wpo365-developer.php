@@ -39,7 +39,7 @@ class Developer {
             "wpo365-$app-editor",
             $plugins_url . $editor_block_path,
             $editor_block_asset_file['dependencies'],
-            $editor_block_asset_file['version'],
+            $editor_block_asset_file['version']
         );
         \wp_add_inline_script( "wpo365-$app-editor", 'window.wpo365 = window.wpo365 || {}; window.wpo365.blocks = ' . json_encode( array(
             'nonce' => \wp_create_nonce( 'wp_rest' ),
