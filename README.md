@@ -189,7 +189,7 @@ The following list will help to understand the various options when fetching dat
   /**
    * Scope for the permissions needed e.g. https://graph.microsoft.com/Sites.Read.All.
    */
-  scope: 'https://graph.microsoft.com/Sites.ead.All',
+  scope: 'https://graph.microsoft.com/Sites.Read.All',
 
   /**
    * Whether to use application instead of delegated permissions.
