@@ -1,5 +1,11 @@
 # Using the WPO365 RESTful API for Microsoft Graph
 
+## Change log
+
+- 1.1.0 Added an example how a developer can retrieve a user's profile picture from Microsoft Graph
+- 1.0.1 Fixed a type
+- 1.0.0 Initial version
+
 ## Introduction
 
 This project serves as a simplified example of how you as a developer can develop a Gutenberg Block for WordPress using the wealth of data Microsoft 365 services such as SharePoint Online, OneDrive and Microsoft (Office) Graph make available.

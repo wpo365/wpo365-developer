@@ -26,30 +26,6 @@ const getNumberOrDefault = (value, defaultValue) =>
   !!value && !isNaN(parseInt(value)) ? parseInt(value) : defaultValue
 
 /**
- * Renders a simple table that will display the recently used documents.
- *
- * @param {*} items
- * @returns
- */
-const renderTable = (items) => {
-  return (
-    <table>
-      <tbody>
-        <tr>
-          <th>My recent documents</th>
-        </tr>
-        {Array.isArray(items) &&
-          items.map((item, key) => (
-            <tr key={'tr_' + key}>
-              <td key={'td_' + key}>{item.resourceVisualization.title}</td>
-            </tr>
-          ))}
-      </tbody>
-    </table>
-  )
-}
-
-/**
  * A simple React component that will look up the div with ID "wpo365Recent"
  * that the block's editor "saved" in the page when the block was added.
  *
@@ -73,9 +49,15 @@ const App = (_) => {
     10
   )
 
-  const [table, updateTable] = React.useState(<p>Table will appear here</p>)
-  const [lastError, updateLastError] = React.useState('')
+  const [items, updateItems] = React.useState([])
+  const [lastDocsError, updateLastDocsError] = React.useState('')
 
+  const [userPicSrc, updateUserPicSrc] = React.useState(null)
+  const [lastUserPicSrcError, updateLastUserPicSrcError] = React.useState('')
+
+  /**
+   * Get a user's recently used documents.
+   */
   React.useEffect(() => {
     fetch(apiUrl + '/me', {
       method: 'POST',
@@ -127,24 +109,134 @@ const App = (_) => {
       .then((data) => {
         console.log(data)
         if (typeof data == 'object' && data.value) {
-          updateTable(renderTable(data.value))
+          updateItems(data.value)
         } else {
           throw 'Fetch returned an unexpected result -> ' + JSON.stringify(data)
         }
       })
       .catch((err) => {
         if (err.response) {
-          updateLastError(JSON.stringify(err.response.data))
+          updateLastDocsError(JSON.stringify(err.response.data))
         } else {
-          updateLastError(JSON.stringify(err))
+          updateLastDocsError(JSON.stringify(err))
+        }
+      })
+  }, [])
+
+  /**
+   * Get a user's profile picture
+   */
+  React.useEffect(() => {
+    fetch(apiUrl + '/me', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; odata=verbose',
+        'X-WP-Nonce': nonce,
+      },
+      body: JSON.stringify({
+        /**
+         * The data to be posted to Microsoft Graph e.g. { "requests": [ { "entityTypes": [ "message" ], "query": { "queryString": "contoso" } } ] }.
+         */
+        data: null,
+
+        /**
+         * Additional headers to be included when fetching from Microsoft Graph e.g. {consistencylevel: 'eventual'}
+         */
+        headers: null,
+
+        /**
+         * The query string e.g. mainly when reading data e.g. [sites]/wpo365demo.sharepoint.com:/.
+         */
+        query: 'photo/$value',
+
+        /**
+         * Scope for the permissions needed e.g. https://graph.microsoft.com/Sites.Read.All.
+         */
+        scope: 'https://graph.microsoft.com/User.Read',
+
+        /**
+         * Whether to use application instead of delegated permissions.
+         */
+        application: false,
+
+        /**
+         * Whether the payload is binary (the result will be an object with exactly one property: { "binary": "[base64 encoded string]"" })
+         */
+        binary: true,
+
+        /**
+         * How to fetch from Microsoft Graph (default: GET).
+         */
+        method: 'GET',
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+        if (typeof data == 'object' && data.binary) {
+          updateUserPicSrc(`data:image/png;base64,${data.binary}`)
+        } else {
+          throw 'Fetch returned an unexpected result -> ' + JSON.stringify(data)
+        }
+      })
+      .catch((err) => {
+        if (err.response) {
+          updateLastUserPicSrcError(JSON.stringify(err.response.data))
+        } else {
+          updateLastUserPicSrcError(JSON.stringify(err))
         }
       })
   }, [])
 
   return (
     <div>
-      <div style={{ display: 'block' }}>{table}</div>
-      {lastError && <div style={{ display: 'block' }}>{lastError}</div>}
+      <div style={{ display: 'block' }}>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <div>
+                  <div style={{ display: 'table-cell' }}>
+                    <h3
+                      style={{ lineHeight: '100px', verticalAlign: 'middle' }}>
+                      My recent documents
+                    </h3>
+                  </div>
+                  <div
+                    style={{
+                      display: 'table-cell',
+                      lineHeight: '100px',
+                      verticalAlign: 'middle',
+                      paddingLeft: '50px',
+                    }}>
+                    {userPicSrc && (
+                      <img
+                        src={userPicSrc}
+                        style={{
+                          display: 'block',
+                          width: '90px',
+                          height: '90px',
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {Array.isArray(items) &&
+              items.map((item, key) => (
+                <tr key={'tr_' + key}>
+                  <td key={'td_' + key}>{item.resourceVisualization.title}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+      {lastDocsError && <div style={{ display: 'block' }}>{lastDocsError}</div>}
+      {lastUserPicSrcError && (
+        <div style={{ display: 'block' }}>{lastUserPicSrcError}</div>
+      )}
     </div>
   )
 }
