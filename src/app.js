@@ -55,6 +55,9 @@ const App = (_) => {
   const [userPicSrc, updateUserPicSrc] = React.useState(null)
   const [lastUserPicSrcError, updateLastUserPicSrcError] = React.useState('')
 
+  const [token, updateToken] = React.useState('')
+  const [tokenError, updateTokenError] = React.useState('')
+
   /**
    * Get a user's recently used documents.
    */
@@ -189,6 +192,35 @@ const App = (_) => {
       })
   }, [])
 
+  const getAccessToken = () => {
+    fetch(apiUrl + '/token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; odata=verbose',
+        'X-WP-Nonce': nonce,
+      },
+      body: JSON.stringify({
+        /**
+         * Scope for the permissions needed e.g. https://graph.microsoft.com/Sites.Read.All.
+         */
+        scope: 'https://graph.microsoft.com/User.Read',
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+        updateToken(JSON.stringify(data))
+      })
+      .catch((err) => {
+        if (err.response) {
+          updateTokenError(JSON.stringify(err.response.data))
+        } else {
+          updateTokenError(JSON.stringify(err))
+        }
+      })
+  }
+
   return (
     <div>
       <div style={{ display: 'block' }}>
@@ -231,12 +263,25 @@ const App = (_) => {
                 </tr>
               ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td>
+                <button onClick={getAccessToken}>
+                  Get access token for scope User.Read
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>{token && <p>{token}</p>}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
       {lastDocsError && <div style={{ display: 'block' }}>{lastDocsError}</div>}
       {lastUserPicSrcError && (
         <div style={{ display: 'block' }}>{lastUserPicSrcError}</div>
       )}
+      {tokenError && <div style={{ display: 'block' }}>{tokenError}</div>}
     </div>
   )
 }
